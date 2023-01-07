@@ -1,0 +1,70 @@
+version: '3'
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    hostname: host_nodered
+    restart: unless-stopped
+    ports:
+      - 1880:1880
+    volumes:
+      - ./nodered/data:/data
+  
+    environment:
+      - TZ=Europe/Paris
+      - FLOWS=flows.json
+      - NODE_OPTIONS=--max-old-space-size=256
+
+    networks:
+      - nodered_net
+
+    depends_on:
+      - mosquitto
+      - influxdb
+      # - mongodb
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    hostname: host_mosquitto
+    restart: "no"
+    ports:
+      - 0.0.0.0:1883:1883
+      - 0.0.0.0:9001:9001
+    volumes:
+      - ./mosquitto:/mosquitto
+
+    networks:
+      - nodered_net
+
+  influxdb:
+    image: influxdb:2.4
+    container_name: influxdb
+    hostname:  host_influxdb
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+    volumes:
+      - ./influxdb:/var/lib/influxdb2/
+    networks:
+      - nodered_net
+
+  mongodb:
+    image: mongo:5.0.13
+    container_name: mongodb
+    hostname:  host_mongodb
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongodb/data:/data/db
+    networks:
+      - nodered_net
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: admin
+    #   MONGO_INITDB_ROOT_PASSWORD: admin
+    
+
+networks:
+  nodered_net:
+    driver: bridge

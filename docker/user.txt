@@ -1,0 +1,3 @@
+influxdb:
+username:admin
+password:password
